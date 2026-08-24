@@ -1,6 +1,7 @@
 -- ============================================================
--- 健身健康数据同步（快捷指令 → Supabase）
--- 在 Supabase 后台 SQL Editor 里一次性执行本文件
+-- 健身健康数据同步（快捷指令 → Supabase，RPC 版）
+-- 在 Supabase 后台 SQL Editor 里「新建查询」→ 粘贴本文件全部内容 → 「运行」
+-- 一次性执行即可（无需部署 Edge Function、无需配置密钥）
 -- 对应项目：rmldjztswbfdedwaawhq
 -- ============================================================
 
@@ -27,11 +28,10 @@ create table if not exists public.sync_tokens (
 );
 create index if not exists sync_tokens_token_idx on public.sync_tokens (token);
 
--- 3) 开启行级安全（RLS）
+-- 3) 行级安全（RLS）：App 端登录后只能读写自己的数据
 alter table public.health_snapshot enable row level security;
 alter table public.sync_tokens    enable row level security;
 
--- 4) 策略：用户只能读写自己的数据
 drop policy if exists "own health snapshot" on public.health_snapshot;
 create policy "own health snapshot" on public.health_snapshot
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
@@ -40,5 +40,51 @@ drop policy if exists "own sync token" on public.sync_tokens;
 create policy "own sync token" on public.sync_tokens
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
--- 说明：sync-health Edge Function 使用 service_role key 运行（绕过 RLS），
--- 仅凭 token 反查 user_id 后写入，外部无法枚举他人数据。
+-- 4) 写入接口：PostgREST RPC（供 iPhone 快捷指令「获取 URL 内容」POST 调用）
+--    由 anon 直接调用（无需登录），函数内部用 token 反查用户后写入；
+--    外部拿不到 token 就无法写入，也无法枚举他人数据。
+drop function if exists public.upsert_health(text,text,integer,numeric,integer,integer);
+create or replace function public.upsert_health(
+  p_token           text,
+  p_date            text,
+  p_steps           integer      default 0,
+  p_distance_km     numeric      default 0,
+  p_calories        integer      default 0,
+  p_active_minutes  integer      default 0
+)
+returns json
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+declare
+  v_uid uuid;
+begin
+  if p_token is null or p_date is null then
+    return json_build_object('ok', false, 'error', 'missing token or date');
+  end if;
+  select user_id into v_uid from public.sync_tokens where token = p_token;
+  if v_uid is null then
+    return json_build_object('ok', false, 'error', 'invalid token');
+  end if;
+  insert into public.health_snapshot
+    (user_id, snapshot_date, steps, distance_km, calories, active_minutes, source, synced_at)
+  values
+    (v_uid, p_date::date,
+     greatest(0, coalesce(p_steps,0)),
+     greatest(0, coalesce(p_distance_km,0)),
+     greatest(0, coalesce(p_calories,0)),
+     greatest(0, coalesce(p_active_minutes,0)),
+     'shortcut', now())
+  on conflict (user_id, snapshot_date) do update set
+    steps = excluded.steps,
+    distance_km = excluded.distance_km,
+    calories = excluded.calories,
+    active_minutes = excluded.active_minutes,
+    synced_at = now();
+  return json_build_object('ok', true, 'date', p_date);
+end;
+$$;
+
+-- 允许匿名（快捷指令）调用该写入接口
+grant execute on function public.upsert_health(text,text,integer,numeric,integer,integer) to anon, authenticated;

@@ -11,7 +11,7 @@ const Fitness = {
 
   // 模拟 iOS 健身数据
   iosHealthData() {
-    // 通过快捷指令 Webhook 同步 → 当前为本地模拟
+    // 通过快捷指令 POST 到 Supabase RPC(upsert_health) 同步真实数据；未同步时回退为本地模拟
     const seed = DB.todayKey();
     const stored = DB.get('ios_health_' + seed);
     if (stored) return stored;
@@ -503,11 +503,11 @@ const Fitness = {
       }
       const token = await this.ensureSyncToken();
       if (!token) { Utils.toast('生成同步码失败', 'error'); return; }
-      const apiUrl = (SupabaseCfg.URL || '').replace(/\/+$/, '') + '/functions/v1/sync-health';
+      const apiUrl = (SupabaseCfg.URL || '').replace(/\/+$/, '') + '/rest/v1/rpc/upsert_health';
       const m = Components.modal({
         title: '📲 自动同步设置',
         body: `
-          <div class="text-sm mb-10">把下面两样填进你 iPhone 快捷指令的「获取 URL 内容」里（详见聊天里的配置说明）：</div>
+          <div class="text-sm mb-10">把下面两样填进你 iPhone 快捷指令的「获取 URL 内容」里（方法选 POST，请求体选 JSON）：</div>
           <div style="margin-bottom:10px">
             <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">① 接口地址（URL）</div>
             <div style="background:var(--bg-soft,#f6f1fb);border:1px solid var(--border,#eee);border-radius:10px;padding:10px;font-family:monospace;font-size:12px;word-break:break-all">${this._esc(apiUrl)}</div>
@@ -517,8 +517,9 @@ const Fitness = {
             <div style="background:var(--bg-soft,#f6f1fb);border:1px solid var(--border,#eee);border-radius:10px;padding:10px;font-family:monospace;font-size:12px;word-break:break-all" id="sync-token-val">${this._esc(token)}</div>
           </div>
           <div style="font-size:11px;color:var(--text-muted);line-height:1.6">
-            快捷指令请求体示例：<br>
-            <code>{"token":"上面的码","date":"今天日期","steps":健康样本值,"distance_km":距离,"calories":卡路里,"active_minutes":运动分钟}</code>
+            快捷指令请求体（JSON）示例：<br>
+            <code>{"p_token":"上面的码","p_date":"今天日期","p_steps":健康样本值,"p_distance_km":距离,"p_calories":卡路里,"p_active_minutes":运动分钟}</code><br>
+            <span style="margin-top:4px;display:inline-block">（头部加 Content-Type: application/json 即可，无需登录、无需部署函数）</span>
           </div>
           <div class="flex gap-8 mt-12">
             <button class="btn-primary" id="sync-copy">📋 复制接口+同步码</button>
@@ -529,7 +530,7 @@ const Fitness = {
       const copyBtn = document.getElementById('sync-copy');
       const tokenValEl = document.getElementById('sync-token-val');
       copyBtn?.addEventListener('click', () => {
-        const txt = '接口地址：' + apiUrl + '\n同步码：' + token + '\n请求体示例：{"token":"' + token + '","date":"' + DB.todayKey() + '","steps":步数}';
+        const txt = '接口地址：' + apiUrl + '\n同步码：' + token + '\n请求体(JSON)：{"p_token":"' + token + '","p_date":"' + DB.todayKey() + '","p_steps":步数}';
         try { navigator.clipboard?.writeText(txt); } catch (e) {}
         Utils.toast('已复制，去快捷指令粘贴', 'success');
       });
