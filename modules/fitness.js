@@ -30,6 +30,85 @@ const Fitness = {
     return data;
   },
 
+  // 生成随机同步码（24 位，去掉易混淆字符）
+  _genToken() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+    let s = '';
+    for (let i = 0; i < 24; i++) s += chars[Math.floor(Math.random() * chars.length)];
+    return s;
+  },
+
+  // 取已有同步码，没有则生成并写入 sync_tokens
+  async ensureSyncToken() {
+    if (!SupabaseCfg.ENABLED || !SupabaseCfg.user) return null;
+    try {
+      const { data } = await SupabaseCfg.client
+        .from('sync_tokens').select('token')
+        .eq('user_id', SupabaseCfg.user.id).maybeSingle();
+      if (data?.token) return data.token;
+      const token = this._genToken();
+      const { error } = await SupabaseCfg.client
+        .from('sync_tokens').upsert({ user_id: SupabaseCfg.user.id, token });
+      if (error) { console.warn('[sync-token]', error); return null; }
+      return token;
+    } catch (e) { console.warn('[sync-token]', e); return null; }
+  },
+
+  // 重新生成同步码
+  async regenSyncToken() {
+    if (!SupabaseCfg.ENABLED || !SupabaseCfg.user) return null;
+    const token = this._genToken();
+    const { error } = await SupabaseCfg.client
+      .from('sync_tokens').update({ token }).eq('user_id', SupabaseCfg.user.id);
+    if (error) { console.warn('[sync-token]', error); return null; }
+    return token;
+  },
+
+  // 读取某天真实健康快照
+  async fetchHealthSnapshot(date) {
+    if (!SupabaseCfg.ENABLED || !SupabaseCfg.user) return null;
+    try {
+      const { data } = await SupabaseCfg.client
+        .from('health_snapshot').select('*')
+        .eq('snapshot_date', date).maybeSingle();
+      return data || null;
+    } catch (e) { console.warn('[health]', e); return null; }
+  },
+
+  // 从云端拉取今日真实数据，覆盖模拟值并刷新页面卡片
+  async refreshHealthFromCloud() {
+    if (!SupabaseCfg.ENABLED || !SupabaseCfg.user) return;
+    const today = DB.todayKey();
+    const snap = await this.fetchHealthSnapshot(today);
+    const stateEl = document.getElementById('fit-sync-state');
+    if (!snap) {
+      if (stateEl) stateEl.textContent = '未同步（用模拟值）';
+      return;
+    }
+    const real = {
+      steps: snap.steps || 0,
+      calories: snap.calories || 0,
+      duration: snap.active_minutes || 0,
+      distance: snap.distance_km || 0,
+      source: 'iOS 健身 (快捷指令同步)',
+      syncedAt: snap.synced_at,
+    };
+    // 写入本地缓存，下次进入直接读
+    DB.set('ios_health_' + today, real);
+    // 精准更新三个数据卡
+    const setVal = (key, val) => {
+      const el = document.querySelector(`[data-stat="${key}"]`);
+      if (el) el.textContent = (key === 'steps' || key === 'cal') ? Utils.num(val) : val;
+    };
+    setVal('steps', real.steps);
+    const todayCal = (DB.filterByDate('fitness_records', today)
+      .filter(r => r.calories).reduce((s, r) => s + (r.calories || 0), 0)) + real.calories;
+    setVal('cal', todayCal);
+    setVal('min', (DB.filterByDate('fitness_records', today)
+      .filter(r => r.minutes).reduce((s, r) => s + (r.minutes || 0), 0)) + real.duration);
+    if (stateEl) stateEl.textContent = '已同步 ' + (snap.synced_at || '').slice(0, 10);
+  },
+
   // 注入页面
   mount(container) {
     const today = DB.todayKey();
@@ -66,17 +145,17 @@ const Fitness = {
         <div class="fitness-overview">
           <div class="fitness-stat float-anim" style="animation-delay:0s">
             <div class="stat-ico">👟</div>
-            <div class="stat-value">${Utils.num(ios.steps)}</div>
+            <div class="stat-value" data-stat="steps">${Utils.num(ios.steps)}</div>
             <div class="stat-label">步数</div>
           </div>
           <div class="fitness-stat float-anim" style="animation-delay:0.1s">
             <div class="stat-ico">🔥</div>
-            <div class="stat-value">${Utils.num(todayCal)}</div>
+            <div class="stat-value" data-stat="cal">${Utils.num(todayCal)}</div>
             <div class="stat-label">千卡</div>
           </div>
           <div class="fitness-stat float-anim" style="animation-delay:0.2s">
             <div class="stat-ico">⏱️</div>
-            <div class="stat-value">${todayMinutes + ios.duration}</div>
+            <div class="stat-value" data-stat="min">${todayMinutes + ios.duration}</div>
             <div class="stat-label">分钟</div>
           </div>
           <div class="fitness-stat float-anim" style="animation-delay:0.3s">
@@ -84,6 +163,17 @@ const Fitness = {
             <div class="stat-value">${streak}</div>
             <div class="stat-label">连续天</div>
           </div>
+        </div>
+
+        <div class="card mb-16" id="fit-sync-card" style="position:relative;overflow:visible">
+          <div class="flex-between mb-8">
+            <div class="card-title">
+              <span class="card-title-ico">📲</span>自动同步（快捷指令）
+            </div>
+            <span class="text-xs text-muted" id="fit-sync-state">未同步</span>
+          </div>
+          <div class="text-sm text-muted mb-10">用 iPhone「快捷指令」读取健康步数，自动写入云端，本页实时显示真实数据（不再用模拟值）。</div>
+          <button class="btn-soft" id="fit-sync-code">🔑 查看 / 复制同步码</button>
         </div>
 
         <div class="card mb-16" style="position:relative;overflow:visible">
@@ -141,6 +231,8 @@ const Fitness = {
     this.renderChart();
     this.bindEvents();
     this.bindCloudBanner();
+    // 若已登录云同步，异步拉取真实健康数据覆盖模拟值
+    this.refreshHealthFromCloud();
   },
 
   // 页面顶部云同步横幅卡 — 让用户一眼看到是否已登录 GitHub
@@ -392,15 +484,64 @@ const Fitness = {
       this.showCalendar();
     });
 
-    // iOS 同步
-    document.getElementById('fit-sync')?.addEventListener('click', () => {
-      const seed = DB.todayKey();
-      DB.remove('ios_health_' + seed);
-      Utils.toast('正在重新同步 iOS 健身数据...');
-      setTimeout(() => {
-        this.mount(root);
-        Utils.toast('同步完成 ✓', 'success');
-      }, 800);
+    // iOS 同步：从云端拉取真实健康数据
+    document.getElementById('fit-sync')?.addEventListener('click', async () => {
+      if (!SupabaseCfg.ENABLED || !SupabaseCfg.user) {
+        Utils.toast('请先在设置里登录云同步（GitHub）', 'info');
+        return;
+      }
+      Utils.toast('正在从云端拉取健康数据...');
+      await this.refreshHealthFromCloud();
+      Utils.toast('同步完成 ✓', 'success');
+    });
+
+    // 查看 / 复制同步码
+    document.getElementById('fit-sync-code')?.addEventListener('click', async () => {
+      if (!SupabaseCfg.ENABLED || !SupabaseCfg.user) {
+        Utils.toast('请先在设置里登录云同步（GitHub）', 'info');
+        return;
+      }
+      const token = await this.ensureSyncToken();
+      if (!token) { Utils.toast('生成同步码失败', 'error'); return; }
+      const apiUrl = (SupabaseCfg.URL || '').replace(/\/+$/, '') + '/functions/v1/sync-health';
+      const m = Components.modal({
+        title: '📲 自动同步设置',
+        body: `
+          <div class="text-sm mb-10">把下面两样填进你 iPhone 快捷指令的「获取 URL 内容」里（详见聊天里的配置说明）：</div>
+          <div style="margin-bottom:10px">
+            <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">① 接口地址（URL）</div>
+            <div style="background:var(--bg-soft,#f6f1fb);border:1px solid var(--border,#eee);border-radius:10px;padding:10px;font-family:monospace;font-size:12px;word-break:break-all">${this._esc(apiUrl)}</div>
+          </div>
+          <div style="margin-bottom:10px">
+            <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">② 同步码（token，一人一个，切勿外泄）</div>
+            <div style="background:var(--bg-soft,#f6f1fb);border:1px solid var(--border,#eee);border-radius:10px;padding:10px;font-family:monospace;font-size:12px;word-break:break-all" id="sync-token-val">${this._esc(token)}</div>
+          </div>
+          <div style="font-size:11px;color:var(--text-muted);line-height:1.6">
+            快捷指令请求体示例：<br>
+            <code>{"token":"上面的码","date":"今天日期","steps":健康样本值,"distance_km":距离,"calories":卡路里,"active_minutes":运动分钟}</code>
+          </div>
+          <div class="flex gap-8 mt-12">
+            <button class="btn-primary" id="sync-copy">📋 复制接口+同步码</button>
+            <button class="btn-soft" id="sync-regen">🔄 重新生成</button>
+          </div>
+        `,
+      });
+      const copyBtn = document.getElementById('sync-copy');
+      const tokenValEl = document.getElementById('sync-token-val');
+      copyBtn?.addEventListener('click', () => {
+        const txt = '接口地址：' + apiUrl + '\n同步码：' + token + '\n请求体示例：{"token":"' + token + '","date":"' + DB.todayKey() + '","steps":步数}';
+        try { navigator.clipboard?.writeText(txt); } catch (e) {}
+        Utils.toast('已复制，去快捷指令粘贴', 'success');
+      });
+      document.getElementById('sync-regen')?.addEventListener('click', async () => {
+        const newToken = await this.regenSyncToken();
+        if (newToken && tokenValEl) {
+          tokenValEl.textContent = newToken;
+          Utils.toast('已重新生成，请重新复制', 'success');
+        } else {
+          Utils.toast('生成失败', 'error');
+        }
+      });
     });
   },
 
