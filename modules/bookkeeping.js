@@ -59,6 +59,21 @@ const Bookkeeping = {
     return list;
   },
 
+  // 修改某条记录（金额/分类/备注/日期）
+  update(id, patch) {
+    const list = this.all().map(x => {
+      if (x._id !== id) return x;
+      const next = { ...x, ...patch };
+      if (patch.date && patch.date !== x.date) {
+        next.date = patch.date;
+        next.ts = new Date(patch.date + 'T12:00:00').getTime();
+      }
+      return next;
+    });
+    this.save(list);
+    return list;
+  },
+
   // ---------- 解析：随手记文本 ----------
   parseQuick(text) {
     const t = (text || '').trim();
@@ -222,8 +237,14 @@ const Bookkeeping = {
         .bk-quick-row select.select { width:96px; flex:none; }
         .bk-mic-btn { flex:none; width:42px; height:42px; border-radius:12px; border:none; background:linear-gradient(135deg,#b497d6,#d9a7e8); color:#fff; font-size:18px; cursor:pointer; }
         .bk-hint { font-size:11px; color:var(--text-muted); line-height:1.5; }
-        .bk-rec { display:flex; align-items:center; gap:10px; padding:10px 4px; border-bottom:1px solid rgba(180,151,214,0.12); }
+        .bk-rec { display:flex; align-items:center; gap:10px; padding:10px 4px; border-bottom:1px solid rgba(180,151,214,0.12); cursor:pointer; }
         .bk-rec:last-child { border-bottom:none; }
+        .bk-rec:hover { background:rgba(180,151,214,0.06); border-radius:10px; }
+        .bk-day-group { margin-bottom:6px; }
+        .bk-day-head { display:flex; align-items:center; justify-content:space-between; padding:6px 4px; font-size:12px; color:var(--text-muted); border-bottom:1px dashed rgba(180,151,214,0.18); margin-bottom:2px; }
+        .bk-day-total { font-weight:700; color:var(--primary-deep); }
+        .bk-edit label { display:block; margin-bottom:4px; }
+        .bk-edit .input, .bk-edit .select { margin-bottom:12px; width:100%; box-sizing:border-box; }
         .bk-rec-ico { width:34px; height:34px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:17px; flex:none; }
         .bk-rec-main { flex:1; min-width:0; }
         .bk-rec-note { font-size:14px; color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -326,10 +347,10 @@ const Bookkeeping = {
 
         <div class="card mb-12">
           <div class="flex-between mb-8">
-            <div class="lfc-title">🧾 今日流水（${today.length}）</div>
-            ${today.length ? `<button class="btn-link" id="bk-clear" style="font-size:12px">清空全部</button>` : ''}
+            <div class="lfc-title">🧾 本月明细（${this.monthRecords().length}）</div>
+            ${this.all().length ? `<button class="btn-link" id="bk-clear" style="font-size:12px">清空全部</button>` : ''}
           </div>
-          ${today.length ? today.map(r => this.renderRow(r)).join('') : Components.empty({ icon: '🧾', title: '今天还没记账哦', sub: '随手记一笔，或导入账单开始吧', module: 'bookkeeping' })}
+          ${this.renderMonthDetail()}
         </div>
 
         <div class="bk-privacy">
@@ -355,6 +376,68 @@ const Bookkeeping = {
         <div class="bk-rec-amt">¥${Utils.num((Number(r.amount) || 0).toFixed(2))}</div>
         <button class="bk-rec-del" data-del="${r._id}" title="删除">🗑</button>
       </div>`;
+  },
+
+  // 本月明细：按日期分组，每天一行小计，每条可点开修改
+  renderMonthDetail() {
+    const recs = this.monthRecords().slice().sort((a, b) => {
+      if (a.date !== b.date) return a.date < b.date ? 1 : -1;
+      return (b.ts || 0) - (a.ts || 0);
+    });
+    if (!recs.length) return Components.empty({ icon: '🧾', title: '这个月还没有记账哦', sub: '随手记一笔，或导入账单开始吧', module: 'bookkeeping' });
+    const groups = {};
+    recs.forEach(r => { (groups[r.date] = groups[r.date] || []).push(r); });
+    const dates = Object.keys(groups).sort((a, b) => b < a ? 1 : -1);
+    return dates.map(dk => {
+      const dayTotal = groups[dk].reduce((s, r) => s + (Number(r.amount) || 0), 0);
+      const [, m, d] = dk.split('-');
+      const rows = groups[dk].map(r => this.renderRow(r)).join('');
+      return `
+        <div class="bk-day-group">
+          <div class="bk-day-head">
+            <span>${+m}月${+d}日</span>
+            <span class="bk-day-total">¥${Utils.num(dayTotal.toFixed(2))}</span>
+          </div>
+          ${rows}
+        </div>`;
+    }).join('');
+  },
+
+  // 打开修改弹窗
+  openEdit(id) {
+    const rec = this.all().find(x => x._id === id);
+    if (!rec) return;
+    const c = (this.CAT_MAP || (this.CAT_MAP = Object.fromEntries(this.CATS.map(x => [x.key, x]))))[rec.category] || this.CATS[this.CATS.length - 1];
+    const body = `
+      <div class="bk-edit">
+        <label class="text-sm text-secondary">金额（元）</label>
+        <input id="bk-edit-amt" class="input" type="number" step="0.01" min="0" value="${Utils.esc((Number(rec.amount) || 0).toFixed(2))}" />
+        <label class="text-sm text-secondary">分类</label>
+        <select id="bk-edit-cat" class="select">
+          ${this.CATS.map(x => `<option value="${x.key}" ${x.key === rec.category ? 'selected' : ''}>${x.ico} ${x.key}</option>`).join('')}
+        </select>
+        <label class="text-sm text-secondary">备注</label>
+        <input id="bk-edit-note" class="input" value="${Utils.esc(rec.note || '')}" />
+        <label class="text-sm text-secondary">日期</label>
+        <input id="bk-edit-date" class="input" type="date" value="${Utils.esc(rec.date || '')}" />
+      </div>`;
+    const m = Components.modal({
+      title: '修改这笔记账',
+      body,
+      footer: `<button class="btn-ghost btn-primary" data-act="cancel">取消</button><button class="btn-primary btn-pink" data-act="save">保存</button>`,
+    });
+    m.wrap.querySelector('[data-act="cancel"]').addEventListener('click', m.close);
+    m.wrap.querySelector('[data-act="save"]').addEventListener('click', () => {
+      const amount = parseFloat(m.wrap.querySelector('#bk-edit-amt').value);
+      const category = m.wrap.querySelector('#bk-edit-cat').value;
+      const note = m.wrap.querySelector('#bk-edit-note').value.trim();
+      const date = m.wrap.querySelector('#bk-edit-date').value;
+      if (!(amount >= 0) || !date) { Utils.toast('请填好金额和日期', 'warning'); return; }
+      this.update(id, { amount, category, note, date });
+      m.close();
+      Utils.toast('已更新 💖', 'success');
+      this.mount(document.getElementById('app-main'));
+    });
   },
 
   _shiftMonth(delta) {
@@ -449,6 +532,11 @@ const Bookkeeping = {
         Utils.toast('已删除', 'success');
         this.mount(document.getElementById('app-main'));
       });
+    });
+
+    // 点击任意一条记录 → 打开修改弹窗
+    document.querySelectorAll('.bk-rec[data-id]').forEach(row => {
+      row.addEventListener('click', () => this.openEdit(row.dataset.id));
     });
 
     // 清空全部（带确认）
