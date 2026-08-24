@@ -335,7 +335,7 @@ const DB = {
       let merged = 0;
       // 已知的静态 key + 动态 key 前缀（如 ios_health_2026-08-18）
       const knownKeys = Object.values(this.keys);
-      const dynamicPrefixes = ['ios_health_'];
+      const dynamicPrefixes = ['ios_health_', 'study_'];
       const isSyncable = (key) => knownKeys.includes(key) || dynamicPrefixes.some(p => key.startsWith(p));
       for (const [key, row] of Object.entries(cloud)) {
         if (!isSyncable(key)) continue;
