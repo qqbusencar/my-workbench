@@ -607,10 +607,10 @@ const App = {
         btn.style.opacity = '0.5';
         const box = document.createElement('div');
         box.style.cssText = 'background:rgba(255,179,71,0.14);border:1px solid rgba(255,179,71,0.45);border-radius:10px;padding:12px;margin-bottom:12px;font-size:13px;color:#9a6a00;line-height:1.6';
-        box.innerHTML = '👉 请在 Safari 中完成 GitHub 授权，成功后通常会自动跳回本 App。<br>' +
-          '<a href="' + url + '" style="display:inline-block;margin-top:8px;padding:10px 14px;background:linear-gradient(135deg,#24292e,#404a56);color:#fff;border-radius:10px;text-decoration:none;font-weight:600">🐙 点此前往 GitHub 登录</a>';
+        box.innerHTML = '👉 点下方按钮会在 <b>Safari</b> 中打开 GitHub 授权页，授权成功后会自动跳回本 App。<br>' +
+          '若 Safari 提示「已丢失网络连接」或长时间无反应，请改用下方「邮箱 + 密码」登录（主屏内最稳）。<br>' +
+          '<a href="' + url + '" target="_blank" rel="noopener" style="display:inline-block;margin-top:8px;padding:10px 14px;background:linear-gradient(135deg,#24292e,#404a56);color:#fff;border-radius:10px;text-decoration:none;font-weight:600">🐙 点此前往 GitHub 登录</a>';
         btn.insertAdjacentElement('afterend', box);
-        try { window.open(url, '_blank'); } catch (_) { /* 部分 iOS 版本会拦截，用户改点上面的链接 */ }
       } else {
         window.location.href = url;
       }
