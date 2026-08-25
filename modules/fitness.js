@@ -513,7 +513,7 @@ const Fitness = {
           <div style="font-size:11px;color:var(--text-muted);line-height:1.6">
             快捷指令请求体（JSON）示例：<br>
             <code>{"p_token":"上面的码","p_date":"今天日期","p_steps":健康样本值,"p_distance_km":距离,"p_calories":卡路里}</code><br>
-            <span style="margin-top:4px;display:inline-block">（头部加 Content-Type: application/json 即可，无需登录、无需部署函数）</span>
+            <span style="margin-top:4px;display:inline-block">请求头需加两项：<code>Content-Type: application/json</code> 和 <code>apikey: &lt;anon 公开 key，设置页可查&gt;</code>。无需登录、无需部署函数。</span>
           </div>
           <div class="flex gap-8 mt-12">
             <button class="btn-primary" id="sync-copy">📋 复制接口+同步码</button>
@@ -524,7 +524,8 @@ const Fitness = {
       const copyBtn = document.getElementById('sync-copy');
       const tokenValEl = document.getElementById('sync-token-val');
       copyBtn?.addEventListener('click', () => {
-        const txt = '接口地址：' + apiUrl + '\n同步码：' + token + '\n请求体(JSON)：{"p_token":"' + token + '","p_date":"' + DB.todayKey() + '","p_steps":步数}';
+        const ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJtbGRqenRzd2JmZGVkd2Fhd2hxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY2OTQ5NjYsImV4cCI6MjEwMjI3MDk2Nn0.w79ZeC3JhWV4WQbKBQSwXk2AerxfzsyM5p-kd5cgnwI';
+        const txt = '接口地址：' + apiUrl + '\n同步码：' + token + '\n请求头：Content-Type: application/json\napikey: ' + ANON + '\n请求体(JSON)：{"p_token":"' + token + '","p_date":"' + DB.todayKey() + '","p_steps":步数,"p_distance_km":距离,"p_calories":卡路里}';
         try { navigator.clipboard?.writeText(txt); } catch (e) {}
         Utils.toast('已复制，去快捷指令粘贴', 'success');
       });
