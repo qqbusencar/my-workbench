@@ -541,6 +541,7 @@ const App = {
           </div>
           <p class="mb-12 text-sm text-secondary">推荐用 GitHub 一键登录（你的 Supabase 账户即 GitHub 账号）；也可下方用邮箱注册。</p>
           <button class="btn-primary btn-block mb-12" data-act="github" style="background:linear-gradient(135deg,#24292e,#404a56);color:#fff">🐙 使用 GitHub 登录</button>
+          ${navigator.standalone ? '<div style="background:rgba(255,179,71,0.14);border:1px solid rgba(255,179,71,0.45);border-radius:10px;padding:8px 10px;margin-bottom:12px;font-size:12px;color:#9a6a00;line-height:1.5">📱 你正从主屏 App 打开：受 iOS 限制，点 GitHub 会跳到 Safari 且<b>无法回跳本 App</b>，登录态会留在 Safari 而非主屏 App。请直接用下方「邮箱 + 密码」登录（全程在 App 内，数据可正常同步）；若要用 GitHub 账号，请在 <b>Safari</b> 浏览器中打开本页登录。</div>' : ''}
           <div style="text-align:center;color:var(--text-muted);font-size:12px;margin-bottom:10px">— 或使用邮箱 —</div>
           <label class="text-sm text-secondary mb-4" style="display:block">邮箱</label>
           <input id="auth-email" type="email" class="input mb-12" placeholder="your@email.com" />
