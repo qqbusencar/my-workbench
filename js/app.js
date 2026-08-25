@@ -541,7 +541,7 @@ const App = {
           </div>
           <p class="mb-12 text-sm text-secondary">推荐用 GitHub 一键登录（你的 Supabase 账户即 GitHub 账号）；也可下方用邮箱注册。</p>
           <button class="btn-primary btn-block mb-12" data-act="github" style="background:linear-gradient(135deg,#24292e,#404a56);color:#fff">🐙 使用 GitHub 登录</button>
-          ${navigator.standalone ? '<div style="background:rgba(255,179,71,0.14);border:1px solid rgba(255,179,71,0.45);border-radius:10px;padding:8px 10px;margin-bottom:12px;font-size:12px;color:#9a6a00;line-height:1.5">📱 你正从主屏 App 打开：受 iOS 限制，点 GitHub 会跳到 Safari 且<b>无法回跳本 App</b>，登录态会留在 Safari 而非主屏 App。请直接用下方「邮箱 + 密码」登录（全程在 App 内，数据可正常同步）；若要用 GitHub 账号，请在 <b>Safari</b> 浏览器中打开本页登录。</div>' : ''}
+          ${navigator.standalone ? '<div style="background:rgba(255,179,71,0.14);border:1px solid rgba(255,179,71,0.45);border-radius:10px;padding:8px 10px;margin-bottom:12px;font-size:12px;color:#9a6a00;line-height:1.5">📱 主屏模式：点「GitHub 登录」会跳到 Safari 完成授权，授权成功<b>通常会自动跳回本 App 并登录</b>；若个别 iOS 版本未自动跳回，可改用下方「邮箱 + 密码」登录，或在 <b>Safari</b> 中打开本页用 GitHub 登录。</div>' : ''}
           <div style="text-align:center;color:var(--text-muted);font-size:12px;margin-bottom:10px">— 或使用邮箱 —</div>
           <label class="text-sm text-secondary mb-4" style="display:block">邮箱</label>
           <input id="auth-email" type="email" class="input mb-12" placeholder="your@email.com" />
@@ -592,12 +592,28 @@ const App = {
     m.querySelector('[data-act="signin"]').addEventListener('click', () => doAuth('signin'));
     // GitHub OAuth 登录（重定向到 GitHub 授权）
     m.querySelector('[data-act="github"]').addEventListener('click', async () => {
-      Utils.toast('正在跳转到 GitHub 授权…', 'info');
-      const { error } = await SupabaseCfg.signInWithGitHub();
+      Utils.toast('正在准备 GitHub 授权…', 'info');
+      const { url, error } = await SupabaseCfg.signInWithGitHub();
       if (error) {
         showError(error.message || 'GitHub 登录启动失败（请确认已在 Supabase 开启 GitHub Provider 并配置回调）');
+        return;
       }
-      // 成功时浏览器会被重定向到 GitHub，授权后自动回到本应用
+      if (!url) { showError('未获取到 GitHub 授权地址'); return; }
+      // iOS 主屏（WebClip）下，脚本 location.href 跳外部域常被拦截 → 用真实 <a> 链接让用户点，
+      // 授权后 iOS 会把回跳 URL 重新路由回主屏 App 本身（而非留在 Safari），从而主屏直接登录。
+      if (navigator.standalone) {
+        const btn = m.querySelector('[data-act="github"]');
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
+        const box = document.createElement('div');
+        box.style.cssText = 'background:rgba(255,179,71,0.14);border:1px solid rgba(255,179,71,0.45);border-radius:10px;padding:12px;margin-bottom:12px;font-size:13px;color:#9a6a00;line-height:1.6';
+        box.innerHTML = '👉 请在 Safari 中完成 GitHub 授权，成功后通常会自动跳回本 App。<br>' +
+          '<a href="' + url + '" style="display:inline-block;margin-top:8px;padding:10px 14px;background:linear-gradient(135deg,#24292e,#404a56);color:#fff;border-radius:10px;text-decoration:none;font-weight:600">🐙 点此前往 GitHub 登录</a>';
+        btn.insertAdjacentElement('afterend', box);
+        try { window.open(url, '_blank'); } catch (_) { /* 部分 iOS 版本会拦截，用户改点上面的链接 */ }
+      } else {
+        window.location.href = url;
+      }
     });
     // Enter 提交
     [m.querySelector('#auth-email'), m.querySelector('#auth-pwd')].forEach(input => {

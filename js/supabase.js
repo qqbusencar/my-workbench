@@ -250,14 +250,16 @@ const SupabaseCfg = {
   },
 
   // Auth: 使用 GitHub 登录（OAuth 重定向，账户即 GitHub 账号）
+  // 返回 OAuth 授权地址 url，由调用方决定跳转方式（iOS 主屏需真实链接跳转，绕开脚本跨域拦截）
   async signInWithGitHub() {
     if (!this.ENABLED || !this.client) return { error: { message: '云同步未配置' } };
     const redirectTo = window.location.origin + window.location.pathname;
-    const { error } = await this.client.auth.signInWithOAuth({
+    const { data, error } = await this.client.auth.signInWithOAuth({
       provider: 'github',
       options: { redirectTo },
     });
-    return { error: error || null };
+    if (error) return { error };
+    return { url: data?.url || null, error: null };
   },
 
   // 数据：读取某个 key
