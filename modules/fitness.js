@@ -21,7 +21,6 @@ const Fitness = {
     const data = {
       steps: baseSteps,
       calories: Math.floor(baseSteps * 0.045),
-      duration: Math.floor(baseSteps / 110),
       distance: +(baseSteps / 1400).toFixed(2),
       source: 'iOS 健身 (模拟)',
       syncedAt: new Date().toISOString(),
@@ -88,7 +87,6 @@ const Fitness = {
     const real = {
       steps: snap.steps || 0,
       calories: snap.calories || 0,
-      duration: snap.active_minutes || 0,
       distance: snap.distance_km || 0,
       source: 'iOS 健身 (快捷指令同步)',
       syncedAt: snap.synced_at,
@@ -98,14 +96,14 @@ const Fitness = {
     // 精准更新三个数据卡
     const setVal = (key, val) => {
       const el = document.querySelector(`[data-stat="${key}"]`);
-      if (el) el.textContent = (key === 'steps' || key === 'cal') ? Utils.num(val) : val;
+      if (el) el.textContent = (key === 'steps' || key === 'cal') ? Utils.num(val)
+        : (key === 'dist' ? Number(val).toFixed(1) : val);
     };
     setVal('steps', real.steps);
     const todayCal = (DB.filterByDate('fitness_records', today)
       .filter(r => r.calories).reduce((s, r) => s + (r.calories || 0), 0)) + real.calories;
     setVal('cal', todayCal);
-    setVal('min', (DB.filterByDate('fitness_records', today)
-      .filter(r => r.minutes).reduce((s, r) => s + (r.minutes || 0), 0)) + real.duration);
+    setVal('dist', real.distance);
     if (stateEl) stateEl.textContent = '已同步 ' + (snap.synced_at || '').slice(0, 10);
   },
 
@@ -117,8 +115,8 @@ const Fitness = {
     const ios = this.iosHealthData();
     const streak = DB.streakCount('fitness_records');
 
-    // 计算今日数据
-    const todayMinutes = records.filter(r => r.minutes).reduce((s, r) => s + (r.minutes || 0), 0);
+    // 计算今日数据（分钟已移除，距离取自健康同步）
+    const todayDistance = ios.distance;
     const todayCal = records.filter(r => r.calories).reduce((s, r) => s + (r.calories || 0), 0) + ios.calories;
 
     container.innerHTML = `
@@ -154,9 +152,9 @@ const Fitness = {
             <div class="stat-label">千卡</div>
           </div>
           <div class="fitness-stat float-anim" style="animation-delay:0.2s">
-            <div class="stat-ico">⏱️</div>
-            <div class="stat-value" data-stat="min">${todayMinutes + ios.duration}</div>
-            <div class="stat-label">分钟</div>
+            <div class="stat-ico">🌍</div>
+            <div class="stat-value" data-stat="dist">${(+todayDistance).toFixed(1)}</div>
+            <div class="stat-label">公里</div>
           </div>
           <div class="fitness-stat float-anim" style="animation-delay:0.3s">
             <div class="stat-ico">🌟</div>
@@ -332,7 +330,7 @@ const Fitness = {
             <div class="fitness-item-ico ${icoClass}">${item.icon || '🌸'}</div>
             <div>
               <div class="fitness-item-name">${Utils.esc(item.name)}</div>
-              <div class="fitness-item-meta">${item.goal ? `目标 ${item.goal}${item.unit || '分钟'}` : '随时开始'}</div>
+              <div class="fitness-item-meta">随时开始</div>
             </div>
           </div>
           <button class="btn-icon" data-del="${item._id}" title="删除">🗑️</button>
@@ -357,24 +355,24 @@ const Fitness = {
     const el = document.getElementById('fit-chart');
     if (!el) return;
     if (this.state.view === 'today') {
-      // 今日累计分钟数 / 卡路里
+      // 今日累计千卡
       const today = DB.todayKey();
       const records = DB.filterByDate('fitness_records', today);
-      const items = records.length ? records : [{ minutes: 0, calories: 0 }];
+      const items = records.length ? records : [{ calories: 0 }];
       el.innerHTML = Utils.barChart(
         items.map((r, i) => ({
-          value: r.minutes || 0,
+          value: r.calories || 0,
           label: (r.itemName || '项目').slice(0, 3),
           color: ['#b497d6', '#ffc6d5', '#b8d8e8', '#c8e6c9', '#ffd8b5'][i % 5],
         })),
         { width: 320, height: 120 }
       );
     } else {
-      // 本周每天
+      // 本周每天累计千卡
       const days = DB.lastNDays(7);
       const data = days.map(d => {
         const recs = DB.filterByDate('fitness_records', d);
-        const total = recs.reduce((s, r) => s + (r.minutes || 0), 0);
+        const total = recs.reduce((s, r) => s + (r.calories || 0), 0);
         return { value: total, label: d.slice(-2) + '日' };
       });
       el.innerHTML = Utils.barChart(data, { width: 320, height: 120 });
@@ -411,7 +409,6 @@ const Fitness = {
           const r = await Components.form({
             title: `打卡 · ${item.name}`,
             fields: [
-              { key: 'minutes', label: '运动时长（分钟）', type: 'number', placeholder: '30', value: item.goal || 30, required: true },
               { key: 'calories', label: '消耗卡路里（千卡）', type: 'number', placeholder: '120', value: 120 },
             ],
             okText: '完成打卡 ✓',
@@ -421,7 +418,6 @@ const Fitness = {
               itemId: id,
               itemName: item.name,
               icon: item.icon,
-              minutes: parseInt(r.minutes) || 0,
               calories: parseInt(r.calories) || 0,
               date: today,
               checked: true,
@@ -460,7 +456,6 @@ const Fitness = {
         fields: [
           { key: 'name', label: '项目名称', placeholder: '例如：普拉提', required: true },
           { key: 'icon', label: '表情图标', placeholder: '🧘‍♀️', value: '🌸' },
-          { key: 'goal', label: '目标时长（分钟）', type: 'number', placeholder: '30', value: 30 },
         ],
         okText: '添加',
       });
@@ -470,7 +465,6 @@ const Fitness = {
           _id: Utils.uid(),
           name: r.name,
           icon: r.icon || '🌸',
-          goal: parseInt(r.goal) || 30,
           type: 'custom',
         });
         DB.set('fitness_custom_items', items);
@@ -518,7 +512,7 @@ const Fitness = {
           </div>
           <div style="font-size:11px;color:var(--text-muted);line-height:1.6">
             快捷指令请求体（JSON）示例：<br>
-            <code>{"p_token":"上面的码","p_date":"今天日期","p_steps":健康样本值,"p_distance_km":距离,"p_calories":卡路里,"p_active_minutes":运动分钟}</code><br>
+            <code>{"p_token":"上面的码","p_date":"今天日期","p_steps":健康样本值,"p_distance_km":距离,"p_calories":卡路里}</code><br>
             <span style="margin-top:4px;display:inline-block">（头部加 Content-Type: application/json 即可，无需登录、无需部署函数）</span>
           </div>
           <div class="flex gap-8 mt-12">
@@ -567,7 +561,7 @@ const Fitness = {
                 <div class="fitness-item-ico fitness-ico-default">${r.icon || '🌸'}</div>
                 <div>
                   <div class="fitness-item-name">${Utils.esc(r.itemName)}</div>
-                  <div class="fitness-item-meta">${r.date} · ${r.minutes || 0} 分钟</div>
+                  <div class="fitness-item-meta">${r.date} · ${r.calories || 0} 千卡</div>
                 </div>
               </div>
             </div>
