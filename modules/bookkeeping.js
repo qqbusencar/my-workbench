@@ -321,17 +321,6 @@ const Bookkeeping = {
         </div>
 
         <div class="card mb-12">
-          <div class="flex-between mb-8">
-            <div class="lfc-title">📥 导入账单</div>
-            <button class="btn-ghost btn-primary" id="bk-import" style="font-size:12px;padding:6px 10px">选择 CSV 文件</button>
-          </div>
-          <div class="bk-hint">
-            支付宝 / 微信 / 美团 / 京东 / 淘宝 均可导出 CSV → 在此上传，自动识别金额、日期并归类（best-effort）。数据仅存本机与你的 Supabase，不上传任何第三方。
-            <input type="file" id="bk-file" accept=".csv,text/csv" style="display:none" />
-          </div>
-        </div>
-
-        <div class="card mb-12">
           <div class="bk-month-nav">
             <button class="cal-nav" data-mnav="prev">‹</button>
             <div class="cal-title">${my}年${+mm}月</div>
@@ -356,6 +345,17 @@ const Bookkeeping = {
         <div class="bk-privacy">
           🔒 数据仅保存在你的浏览器本地 + 你自己的 Supabase 云端（需开启云同步）。<br>
           本工具纯属个人记账，不联网抓取任何支付平台，不涉及荐股或投资咨询。
+        </div>
+
+        <div class="card mb-12">
+          <div class="flex-between mb-8">
+            <div class="lfc-title">📥 导入账单</div>
+            <button class="btn-ghost btn-primary" id="bk-import" style="font-size:12px;padding:6px 10px">选择 CSV 文件</button>
+          </div>
+          <div class="bk-hint">
+            支付宝 / 微信 / 美团 / 京东 / 淘宝 均可导出 CSV → 在此上传，自动识别金额、日期并归类（best-effort）。数据仅存本机与你的 Supabase，不上传任何第三方。
+            <input type="file" id="bk-file" accept=".csv,text/csv" style="display:none" />
+          </div>
         </div>
       </div>
     `;

@@ -298,10 +298,21 @@ const Study = {
     return '总复习阶段';
   },
 
-  todaySentences(pool, daily) {
-    const start = this.dayIndex() * daily;
-    const out = [];
-    for (let i = 0; i < daily; i++) out.push(pool[(start + i) % pool.length]);
+  todaySentences(pool, daily, historySet) {
+    const total = pool.length;
+    if (total === 0) return [];
+    // 按"第几天"确定当天起始偏移 → 保证每天内容相对前一天滚动变化
+    const offset = (((this.dayIndex() * daily) % total) + total) % total;
+    const rotated = [];
+    for (let i = 0; i < total; i++) rotated.push(pool[(offset + i) % total]);
+    // 优先选"历史上没做过"的句子，满足"和之前做过的不重复"
+    const fresh = historySet ? rotated.filter(s => !historySet.has(s.text)) : rotated;
+    let out = fresh.slice(0, daily);
+    if (out.length < daily) {
+      // 池子已做遍 → 用当天顺序补齐（仍按当天偏移滚动，不会卡死）
+      const rest = rotated.filter(s => !out.includes(s));
+      out = out.concat(rest.slice(0, daily - out.length));
+    }
     return out;
   },
 
@@ -329,6 +340,15 @@ const Study = {
   todaySpeakDone() {
     const today = DB.todayKey();
     return new Set(DB.filterByDate('study_speak_done', today).map(r => r.text));
+  },
+
+  // 历史已做集合（跨天），用于"不重复已做"筛选
+  listenHistoryDone() {
+    return new Set(DB.get('study_listen_done', []).map(r => r.text));
+  },
+
+  speakHistoryDone() {
+    return new Set(DB.get('study_speak_done', []).map(r => r.text));
   },
 
   streakDays() {
@@ -568,7 +588,7 @@ const Study = {
       `;
       this.bindQuiz();
     } else if (tab === 'listen') {
-      const sentences = this.todaySentences(this.listeningPool, this.DAILY_LISTEN);
+      const sentences = this.todaySentences(this.listeningPool, this.DAILY_LISTEN, this.listenHistoryDone());
       const doneSet = this.todayListenDone();
       el.innerHTML = `
         <div class="english-panel">
@@ -591,7 +611,7 @@ const Study = {
       `;
       this.bindListen();
     } else if (tab === 'speak') {
-      const sentences = this.todaySentences(this.speakingPool, this.DAILY_SPEAK);
+      const sentences = this.todaySentences(this.speakingPool, this.DAILY_SPEAK, this.speakHistoryDone());
       const doneSet = this.todaySpeakDone();
       el.innerHTML = `
         <div class="english-panel">
@@ -858,7 +878,7 @@ const Study = {
 
   /* ---------- 听力事件绑定 ---------- */
   bindListen() {
-    const sentences = this.todaySentences(this.listeningPool, this.DAILY_LISTEN);
+    const sentences = this.todaySentences(this.listeningPool, this.DAILY_LISTEN, this.listenHistoryDone());
     document.querySelectorAll('[data-listen-play]').forEach(b => {
       b.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -880,7 +900,7 @@ const Study = {
 
   /* ---------- 口语 ---------- */
   bindSpeak() {
-    const sentences = this.todaySentences(this.speakingPool, this.DAILY_SPEAK);
+    const sentences = this.todaySentences(this.speakingPool, this.DAILY_SPEAK, this.speakHistoryDone());
     document.querySelectorAll('[data-speak-play]').forEach(b => {
       b.addEventListener('click', () => {
         const s = sentences[parseInt(b.dataset.speakPlay)];

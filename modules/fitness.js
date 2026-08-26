@@ -163,17 +163,6 @@ const Fitness = {
           </div>
         </div>
 
-        <div class="card mb-16" id="fit-sync-card" style="position:relative;overflow:visible">
-          <div class="flex-between mb-8">
-            <div class="card-title">
-              <span class="card-title-ico">📲</span>自动同步（快捷指令）
-            </div>
-            <span class="text-xs text-muted" id="fit-sync-state">未同步</span>
-          </div>
-          <div class="text-sm text-muted mb-10">用 iPhone「快捷指令」读取健康步数，自动写入云端，本页实时显示真实数据（不再用模拟值）。</div>
-          <button class="btn-soft" id="fit-sync-code">🔑 查看 / 复制同步码</button>
-        </div>
-
         <div class="card mb-16" style="position:relative;overflow:visible">
           <div class="flex-between mb-12">
             <div class="card-title">
@@ -219,6 +208,17 @@ const Fitness = {
 
         <div style="text-align:center;padding:16px;font-size:11px;color:var(--text-muted)">
           数据来源：iOS 健身 + 手动记录 · 已云端同步 🌸
+        </div>
+
+        <div class="card mb-16" id="fit-sync-card" style="position:relative;overflow:visible">
+          <div class="flex-between mb-8">
+            <div class="card-title">
+              <span class="card-title-ico">📲</span>自动同步（快捷指令）
+            </div>
+            <span class="text-xs text-muted" id="fit-sync-state">未同步</span>
+          </div>
+          <div class="text-sm text-muted mb-10">用 iPhone「快捷指令」读取健康步数，自动写入云端，本页实时显示真实数据（不再用模拟值）。</div>
+          <button class="btn-soft" id="fit-sync-code">🔑 查看 / 复制同步码</button>
         </div>
 
         ${this._renderCloudBanner()}
