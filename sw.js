@@ -1,7 +1,7 @@
 /* Hello Kitty 治愈工作台 — Service Worker
    离线优先缓存策略 + Kitty 立绘缓存 */
 
-const CACHE_NAME = 'kitty-wb-v3.1.12';
+const CACHE_NAME = 'kitty-wb-v3.1.13';
 const STATIC_ASSETS = [
   './',
   './index.html',
@@ -14,6 +14,7 @@ const STATIC_ASSETS = [
   './js/utils.js',
   './js/components.js',
   './js/app.js',
+  './js/dict-data.js',
   './js/sw-register.js',
   './modules/fitness.js',
   './modules/wellness.js',
