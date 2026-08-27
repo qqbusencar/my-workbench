@@ -177,7 +177,7 @@ const Study = {
     const syncResult = this.checkDictSync();
     this.buildPool();
     if (syncResult.status === 'upgraded') {
-      Utils.toast(`教材已升级到 ${syncResult.meta.version} 🎉`, 'success');
+      Utils.toast(`词典词库已更新到 ${syncResult.meta.version} 🎉`, 'success');
     }
 
     const today = DB.todayKey();
