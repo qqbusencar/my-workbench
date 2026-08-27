@@ -14,11 +14,11 @@ const Study = {
 
   /* ---------- 教材元数据（自动同步机制） ---------- */
   curriculumMeta: {
-    version: 'V3.0.0',
-    edition: '沪教牛津版 · 小学三年级起点',
-    totalStages: 10,
+    version: 'V4.0.0',
+    edition: '沪教牛津版 · 三年级起点 → 初三',
+    totalStages: 14,
     wordsPerStage: 12,
-    lastSyncDate: '2026-08-17',
+    lastSyncDate: '2026-08-27',
     autoSync: true, // 启动时检测版本
   },
 
@@ -164,6 +164,62 @@ const Study = {
       { word: 'patient', phonetic: '/ˈpeɪʃnt/', pos: 'adj.', meaning: '耐心的', example: 'Be patient, please.', exampleZh: '请耐心一点。' },
       { word: 'knowledge', phonetic: '/ˈnɒlɪdʒ/', pos: 'n.', meaning: '知识', example: 'Knowledge is power.', exampleZh: '知识就是力量。' },
     ]},
+    { stage: '初中二年级上册', words: [
+      { word: 'technology', phonetic: '/tekˈnɒlədʒi/', pos: 'n.', meaning: '科技', example: 'Technology changes our life.', exampleZh: '科技改变我们的生活。' },
+      { word: 'Internet', phonetic: '/ˈɪntənet/', pos: 'n.', meaning: '互联网', example: 'We use the Internet to study.', exampleZh: '我们用互联网来学习。' },
+      { word: 'healthy', phonetic: '/ˈhelθi/', pos: 'adj.', meaning: '健康的', example: 'Eat healthy food every day.', exampleZh: '每天吃健康的食物。' },
+      { word: 'volunteer', phonetic: '/ˌvɒlənˈtɪər/', pos: 'n.', meaning: '志愿者', example: 'He is a volunteer at the library.', exampleZh: '他是图书馆的一名志愿者。' },
+      { word: 'community', phonetic: '/kəˈmjuːnəti/', pos: 'n.', meaning: '社区', example: 'We help our community.', exampleZh: '我们帮助我们的社区。' },
+      { word: 'recycle', phonetic: '/riːˈsaɪkl/', pos: 'v.', meaning: '回收；循环利用', example: 'We recycle paper and bottles.', exampleZh: '我们回收纸张和瓶子。' },
+      { word: 'tradition', phonetic: '/trəˈdɪʃn/', pos: 'n.', meaning: '传统', example: 'Spring Festival is a tradition.', exampleZh: '春节是一个传统。' },
+      { word: 'trip', phonetic: '/trɪp/', pos: 'n.', meaning: '旅行；郊游', example: 'We had a school trip.', exampleZh: '我们进行了一次学校郊游。' },
+      { word: 'share', phonetic: '/ʃeər/', pos: 'v.', meaning: '分享；共享', example: 'Share your happiness with friends.', exampleZh: '和朋友分享你的快乐。' },
+      { word: 'bright', phonetic: '/braɪt/', pos: 'adj.', meaning: '明亮的；聪明的', example: 'The classroom is bright.', exampleZh: '教室很明亮。' },
+      { word: 'goal', phonetic: '/ɡəʊl/', pos: 'n.', meaning: '目标；进球', example: 'Work hard to reach your goal.', exampleZh: '努力去达成你的目标。' },
+      { word: 'polite', phonetic: '/pəˈlaɪt/', pos: 'adj.', meaning: '有礼貌的', example: 'Be polite to others.', exampleZh: '对别人要有礼貌。' },
+    ]},
+    { stage: '初中二年级下册', words: [
+      { word: 'invention', phonetic: '/ɪnˈvenʃn/', pos: 'n.', meaning: '发明', example: 'The telephone is a great invention.', exampleZh: '电话是一项伟大的发明。' },
+      { word: 'improve', phonetic: '/ɪmˈpruːv/', pos: 'v.', meaning: '改善；提高', example: 'Practice improves your English.', exampleZh: '练习能提高你的英语。' },
+      { word: 'natural', phonetic: '/ˈnætʃrəl/', pos: 'adj.', meaning: '自然的', example: 'We should love the natural world.', exampleZh: '我们应该热爱大自然。' },
+      { word: 'wonder', phonetic: '/ˈwʌndər/', pos: 'n.', meaning: '奇迹', example: 'The Great Wall is a wonder.', exampleZh: '长城是一个奇迹。' },
+      { word: 'describe', phonetic: '/dɪˈskraɪb/', pos: 'v.', meaning: '描述', example: 'Can you describe your friend?', exampleZh: '你能描述一下你的朋友吗？' },
+      { word: 'emotion', phonetic: '/ɪˈməʊʃn/', pos: 'n.', meaning: '情绪；情感', example: 'Music expresses our emotion.', exampleZh: '音乐表达我们的情感。' },
+      { word: 'rule', phonetic: '/ruːl/', pos: 'n.', meaning: '规则', example: 'We must follow the school rules.', exampleZh: '我们必须遵守校规。' },
+      { word: 'spaceship', phonetic: '/ˈspeɪsʃɪp/', pos: 'n.', meaning: '宇宙飞船', example: 'A spaceship flies to the moon.', exampleZh: '宇宙飞船飞向月球。' },
+      { word: 'surface', phonetic: '/ˈsɜːfɪs/', pos: 'n.', meaning: '表面', example: 'The surface of the lake is calm.', exampleZh: '湖面很平静。' },
+      { word: 'force', phonetic: '/fɔːs/', pos: 'n.', meaning: '力量；力', example: 'Gravity is a natural force.', exampleZh: '重力是一种自然力。' },
+      { word: 'method', phonetic: '/ˈmeθəd/', pos: 'n.', meaning: '方法', example: 'This is a good study method.', exampleZh: '这是一个好的学习方法。' },
+      { word: 'support', phonetic: '/səˈpɔːt/', pos: 'v./n.', meaning: '支持', example: 'My family supports me.', exampleZh: '我的家人支持我。' },
+    ]},
+    { stage: '初中三年级上册', words: [
+      { word: 'achievement', phonetic: '/əˈtʃiːvmənt/', pos: 'n.', meaning: '成就', example: 'Hard work brings achievement.', exampleZh: '努力带来成就。' },
+      { word: 'career', phonetic: '/kəˈrɪər/', pos: 'n.', meaning: '职业；事业', example: 'She plans her career carefully.', exampleZh: '她认真规划自己的职业。' },
+      { word: 'citizen', phonetic: '/ˈsɪtɪzn/', pos: 'n.', meaning: '公民', example: 'We are responsible citizens.', exampleZh: '我们是负责任的公民。' },
+      { word: 'climate', phonetic: '/ˈklaɪmət/', pos: 'n.', meaning: '气候', example: 'Climate change is serious.', exampleZh: '气候变化很严重。' },
+      { word: 'literature', phonetic: '/ˈlɪtrətʃə(r)/', pos: 'n.', meaning: '文学', example: 'He loves Chinese literature.', exampleZh: '他热爱中国文学。' },
+      { word: 'heritage', phonetic: '/ˈherɪtɪdʒ/', pos: 'n.', meaning: '遗产', example: 'The Great Wall is world heritage.', exampleZh: '长城是世界遗产。' },
+      { word: 'wisdom', phonetic: '/ˈwɪzdəm/', pos: 'n.', meaning: '智慧', example: 'Old people have great wisdom.', exampleZh: '老年人拥有大智慧。' },
+      { word: 'duty', phonetic: '/ˈdjuːti/', pos: 'n.', meaning: '责任；义务', example: 'It is our duty to protect nature.', exampleZh: '保护自然是我们的责任。' },
+      { word: 'global', phonetic: '/ˈɡləʊbl/', pos: 'adj.', meaning: '全球的', example: 'We face global challenges.', exampleZh: '我们面对全球性的挑战。' },
+      { word: 'innovation', phonetic: '/ˌɪnəˈveɪʃn/', pos: 'n.', meaning: '创新', example: 'Innovation drives progress.', exampleZh: '创新推动进步。' },
+      { word: 'harmony', phonetic: '/ˈhɑːməni/', pos: 'n.', meaning: '和谐', example: 'We live in harmony with nature.', exampleZh: '我们与自然和谐共处。' },
+      { word: 'spirit', phonetic: '/ˈspɪrɪt/', pos: 'n.', meaning: '精神；灵魂', example: 'The spirit of helping others is great.', exampleZh: '助人的精神很伟大。' },
+    ]},
+    { stage: '初中三年级下册', words: [
+      { word: 'ambition', phonetic: '/æmˈbɪʃn/', pos: 'n.', meaning: '抱负；野心', example: 'He has a big ambition.', exampleZh: '他有远大的抱负。' },
+      { word: 'perseverance', phonetic: '/ˌpɜːsəˈvɪərəns/', pos: 'n.', meaning: '毅力', example: 'Perseverance leads to success.', exampleZh: '毅力通向成功。' },
+      { word: 'artificial', phonetic: '/ˌɑːtɪˈfɪʃl/', pos: 'adj.', meaning: '人工的', example: 'Artificial intelligence helps us.', exampleZh: '人工智能帮助我们。' },
+      { word: 'horizon', phonetic: '/həˈraɪzn/', pos: 'n.', meaning: '地平线；视野', example: 'Study broadens your horizon.', exampleZh: '学习拓宽你的视野。' },
+      { word: 'lifelong', phonetic: '/ˈlaɪflɒŋ/', pos: 'adj.', meaning: '终身的', example: 'Reading is a lifelong habit.', exampleZh: '阅读是终身的习惯。' },
+      { word: 'frontier', phonetic: '/ˈfrʌntɪər/', pos: 'n.', meaning: '前沿；边界', example: 'Space is the new frontier.', exampleZh: '太空是新的前沿。' },
+      { word: 'contribution', phonetic: '/ˌkɒntrɪˈbjuːʃn/', pos: 'n.', meaning: '贡献', example: 'Everyone can make a contribution.', exampleZh: '每个人都能做出贡献。' },
+      { word: 'grateful', phonetic: '/ˈɡreɪtfl/', pos: 'adj.', meaning: '感激的', example: 'We are grateful for help.', exampleZh: '我们感激他人的帮助。' },
+      { word: 'vision', phonetic: '/ˈvɪʒn/', pos: 'n.', meaning: '视野；愿景', example: 'He has a clear vision for the future.', exampleZh: '他对未来有清晰的愿景。' },
+      { word: 'breakthrough', phonetic: '/ˈbreɪkθruː/', pos: 'n.', meaning: '突破', example: 'Science needs breakthroughs.', exampleZh: '科学需要突破。' },
+      { word: 'dignity', phonetic: '/ˈdɪɡnəti/', pos: 'n.', meaning: '尊严', example: 'Work gives people dignity.', exampleZh: '工作给人尊严。' },
+      { word: 'eternity', phonetic: '/ɪˈtɜːnəti/', pos: 'n.', meaning: '永恒', example: 'Art lasts for eternity.', exampleZh: '艺术永恒流传。' },
+    ]},
   ],
 
   // 平铺词表（按学期顺序 = 难度递增）
@@ -210,6 +266,26 @@ const Study = {
     { text: 'We celebrate the Spring Festival together.', zh: '我们一起庆祝春节。' },
     { text: 'It is a good opportunity to learn.', zh: '这是学习的好机会。' },
     { text: 'Knowledge is power. Keep learning!', zh: '知识就是力量，坚持学习！' },
+    { text: 'We should protect the environment by recycling.', zh: '我们应该通过回收来保护环境。' },
+    { text: 'The Internet helps us learn new things every day.', zh: '互联网帮助我们每天学习新东西。' },
+    { text: 'He is a volunteer at the community center.', zh: '他是社区中心的一名志愿者。' },
+    { text: 'Eating healthy food keeps us strong.', zh: '吃健康的食物让我们身体强壮。' },
+    { text: 'We should be polite to everyone around us.', zh: '我们应该对身边的每个人都有礼貌。' },
+    { text: 'The telephone is one of the greatest inventions.', zh: '电话是最伟大的发明之一。' },
+    { text: 'Practice improves your spoken English.', zh: '练习能提高你的英语口语。' },
+    { text: 'We must follow the rules of the library.', zh: '我们必须遵守图书馆的规则。' },
+    { text: 'The Great Wall is a wonder of the world.', zh: '长城是世界一大奇迹。' },
+    { text: 'My family always supports my dreams.', zh: '我的家人总是支持我的梦想。' },
+    { text: 'Hard work brings great achievement.', zh: '努力会带来伟大的成就。' },
+    { text: 'Everyone should be a responsible citizen.', zh: '每个人都应当成为负责任的公民。' },
+    { text: 'Climate change is a global challenge.', zh: '气候变化是一个全球性挑战。' },
+    { text: 'Reading Chinese literature widens our mind.', zh: '阅读中国文学能开阔我们的思维。' },
+    { text: 'We live in harmony with nature.', zh: '我们与自然和谐共处。' },
+    { text: 'Perseverance leads to success in the end.', zh: '毅力最终会通向成功。' },
+    { text: 'Artificial intelligence is changing the world.', zh: '人工智能正在改变世界。' },
+    { text: 'Reading is a lifelong habit.', zh: '阅读是一种终身的习惯。' },
+    { text: 'Everyone can make a contribution.', zh: '每个人都能做出贡献。' },
+    { text: 'We are grateful for the help from others.', zh: '我们感激他人的帮助。' },
   ],
 
   /* ---------- 口语句库 ---------- */
@@ -239,6 +315,26 @@ const Study = {
     { text: 'I will try my best to achieve my goal.', trans: '我会尽全力实现我的目标。', tip: '表决心 · try ones best' },
     { text: 'Never give up, and you will succeed.', trans: '永不放弃，你就会成功。', tip: '励志表达 · 祈使句 + and' },
     { text: 'Knowledge is power. Keep learning every day.', trans: '知识就是力量，每天坚持学习。', tip: '名言引用 · 注意节奏' },
+    { text: 'I think technology makes life more convenient.', trans: '我认为科技让生活更方便。', tip: '表达观点 · I think' },
+    { text: 'We should share our things with friends.', trans: '我们应该和朋友分享东西。', tip: 'should + 动词原形' },
+    { text: 'My goal is to speak English well.', trans: '我的目标是说好英语。', tip: '表达目标 · 名词作表语' },
+    { text: 'Volunteering makes me happy.', trans: '做志愿者让我快乐。', tip: 'make + 宾语 + 形容词' },
+    { text: 'Let us keep our classroom bright and clean.', trans: '让我们保持教室明亮整洁。', tip: 'Let us + 动词原形' },
+    { text: 'Can you describe your best friend?', trans: '你能描述一下你最好的朋友吗？', tip: '请求描述 · describe' },
+    { text: 'We should love the natural world.', trans: '我们应该热爱大自然。', tip: 'should + 动词原形' },
+    { text: 'This is a good method to study English.', trans: '这是一个学英语的好方法。', tip: 'a method to do' },
+    { text: 'I want to be an inventor in the future.', trans: '我将来想成为一名发明家。', tip: 'want to be + 职业' },
+    { text: 'Science shows us the force of nature.', trans: '科学向我们展示自然的力量。', tip: '主谓双宾' },
+    { text: 'It is our duty to protect the environment.', trans: '保护环境是我们的责任。', tip: 'It is + 名词 + to do' },
+    { text: 'Innovation drives the progress of society.', trans: '创新推动社会进步。', tip: '主谓宾结构' },
+    { text: 'Old people have great wisdom.', trans: '老年人拥有大智慧。', tip: 'have + 名词' },
+    { text: 'We face global challenges together.', trans: '我们共同面对全球挑战。', tip: '范围/频度副词' },
+    { text: 'The spirit of helping others is beautiful.', trans: '助人的精神是美好的。', tip: '名词所有格' },
+    { text: 'He has a big ambition to change the world.', trans: '他有很大的抱负去改变世界。', tip: 'ambition to do' },
+    { text: 'Study broadens your horizon.', trans: '学习拓宽你的视野。', tip: '主谓宾 + 宾语' },
+    { text: 'We should keep learning for life.', trans: '我们应该终身学习。', tip: 'keep doing' },
+    { text: 'Science needs breakthroughs to move on.', trans: '科学需要突破才能前进。', tip: 'need + 名词' },
+    { text: 'Work gives people dignity and pride.', trans: '工作给人尊严与自豪。', tip: 'give + 双宾' },
   ],
 
   DAILY_WORDS: 10,
@@ -281,39 +377,38 @@ const Study = {
   },
 
   todayWords() {
-    const pool = this.buildPool();
-    const start = this.dayIndex() * this.DAILY_WORDS;
-    if (start < pool.length) return pool.slice(start, start + this.DAILY_WORDS);
-    const wrongs = DB.get('study_word_wrong', []);
-    const review = pool.filter(w => wrongs.some(x => x.word === w.word));
-    if (review.length >= this.DAILY_WORDS) return review.slice(0, this.DAILY_WORDS);
-    const wrap = pool.concat(review).slice((start % pool.length));
-    return (wrap.length >= this.DAILY_WORDS ? wrap : wrap.concat(pool)).slice(0, this.DAILY_WORDS);
+    return this.batchFor('study_word_batch', this.buildPool(), this.DAILY_WORDS, 'word', 'study_word_done');
   },
 
   todayStage() {
-    const pool = this.buildPool();
-    const start = this.dayIndex() * this.DAILY_WORDS;
-    if (start < pool.length) return pool[Math.min(start, pool.length - 1)].stage;
-    return '总复习阶段';
+    const w = this.todayWords();
+    if (w.length) return w[0].stage;
+    if (this.todayListen().length) return '（听力）进行中';
+    if (this.todaySpeak().length) return '（口语）进行中';
+    return '全部完成 🎉';
   },
 
-  todaySentences(pool, daily, historySet) {
-    const total = pool.length;
-    if (total === 0) return [];
-    // 按"第几天"确定当天起始偏移 → 保证每天内容相对前一天滚动变化
-    const offset = (((this.dayIndex() * daily) % total) + total) % total;
-    const rotated = [];
-    for (let i = 0; i < total; i++) rotated.push(pool[(offset + i) % total]);
-    // 优先选"历史上没做过"的句子，满足"和之前做过的不重复"
-    const fresh = historySet ? rotated.filter(s => !historySet.has(s.text)) : rotated;
-    let out = fresh.slice(0, daily);
-    if (out.length < daily) {
-      // 池子已做遍 → 用当天顺序补齐（仍按当天偏移滚动，不会卡死）
-      const rest = rotated.filter(s => !out.includes(s));
-      out = out.concat(rest.slice(0, daily - out.length));
+  // 通用批次：从"未做过的"项目里按年级顺序取 daily 个；同一天稳定不重排
+  // 做过的不再出现；池做遍后自然进入下一册（不轮转）；全部做完返回空
+  batchFor(prefix, pool, daily, idKey, doneKey) {
+    const key = prefix + '_batch';
+    const today = DB.todayKey();
+    let batch = DB.get(key, null);
+    const doneSet = new Set(DB.get(doneKey, []).map(r => r[idKey]));
+    if (!batch || batch.date !== today) {
+      const remaining = pool.filter(x => !doneSet.has(x[idKey]));
+      batch = { date: today, ids: remaining.slice(0, daily).map(x => x[idKey]) };
+      DB.set(key, batch);
     }
-    return out;
+    return batch.ids.map(id => pool.find(x => x[idKey] === id)).filter(Boolean);
+  },
+
+  todayListen() {
+    return this.batchFor('study_listen_batch', this.listeningPool, this.DAILY_LISTEN, 'text', 'study_listen_done');
+  },
+
+  todaySpeak() {
+    return this.batchFor('study_speak_batch', this.speakingPool, this.DAILY_SPEAK, 'text', 'study_speak_done');
   },
 
   doneWordsSet() {
@@ -408,7 +503,7 @@ const Study = {
           <div class="kitty-portrait" style="background:linear-gradient(135deg,#d9e2f3,#ffd7c3)">${Utils.kittyImg({ size: 'small', module: 'study' })}</div>
           <div class="lfc-text">
             <div class="lfc-title">${this.streakDays() >= 7 ? '🌟 太厉害啦！' : this.streakDays() > 0 ? '📖 继续加油哦～' : '📖 开始今天的学习吧～'}</div>
-            <div class="lfc-sub">每天 10 新词 + 5 听力 + 5 口语，答错 2 次自动进复习，难度随天数递增～</div>
+            <div class="lfc-sub">每天 10 新词 + 5 听力 + 5 口语，答错 2 次自动进复习，从三年级到初三按教材年级循序渐进～</div>
           </div>
         </div>
 
@@ -546,7 +641,7 @@ const Study = {
         </div>
 
         <div style="text-align:center;padding:16px;font-size:11px;color:var(--text-muted)">
-          每日 10 新词 · 5 句听力 · 5 句口语 · 答错 2 次自动进入待复习词库 🌸
+          每日 10 新词 · 5 句听力 · 5 句口语 · 做过的不再出现 · 答错 2 次自动进入待复习词库 🌸
         </div>
       </div>
     `;
@@ -588,7 +683,7 @@ const Study = {
       `;
       this.bindQuiz();
     } else if (tab === 'listen') {
-      const sentences = this.todaySentences(this.listeningPool, this.DAILY_LISTEN, this.listenHistoryDone());
+      const sentences = this.todayListen();
       const doneSet = this.todayListenDone();
       el.innerHTML = `
         <div class="english-panel">
@@ -611,7 +706,7 @@ const Study = {
       `;
       this.bindListen();
     } else if (tab === 'speak') {
-      const sentences = this.todaySentences(this.speakingPool, this.DAILY_SPEAK, this.speakHistoryDone());
+      const sentences = this.todaySpeak();
       const doneSet = this.todaySpeakDone();
       el.innerHTML = `
         <div class="english-panel">
@@ -878,7 +973,7 @@ const Study = {
 
   /* ---------- 听力事件绑定 ---------- */
   bindListen() {
-    const sentences = this.todaySentences(this.listeningPool, this.DAILY_LISTEN, this.listenHistoryDone());
+    const sentences = this.todayListen();
     document.querySelectorAll('[data-listen-play]').forEach(b => {
       b.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -900,7 +995,7 @@ const Study = {
 
   /* ---------- 口语 ---------- */
   bindSpeak() {
-    const sentences = this.todaySentences(this.speakingPool, this.DAILY_SPEAK, this.speakHistoryDone());
+    const sentences = this.todaySpeak();
     document.querySelectorAll('[data-speak-play]').forEach(b => {
       b.addEventListener('click', () => {
         const s = sentences[parseInt(b.dataset.speakPlay)];
