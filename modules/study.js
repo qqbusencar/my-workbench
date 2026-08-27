@@ -1,10 +1,8 @@
 /* ============================================================
    模块三：学习收获
-   权威英语词典词库（ECDICT 英汉词典 · 按词频排序）
-   每日：10 个新词 / 5 听力 / 5 口语 · 答错 2 次进入待复习词库
-   听力与口语均依据「当天学习的单词」出题
+   权威英语词典词库（ECDICT 英汉词典 · 牛津 3000 核心词 · 成人难度）
+   每日：10 个新词 · 答错 2 次进入待复习词库
    单词 quiz：选选项 → 点「确认」→ 答错/答对
-   听力 quiz：先听单词发音 → 4 选 1 → 点「确认」→ 显示释义
    ============================================================ */
 
 const Study = {
@@ -12,19 +10,17 @@ const Study = {
     tab: 'word', // word / listen / speak / review
   },
 
-  /* ---------- 权威词典词库（ECDICT 英汉词典 · 按词频排序） ---------- */
+  /* ---------- 权威词典词库（ECDICT 英汉词典 · 牛津 3000 核心词 · 成人难度） ---------- */
   dictMeta: {
-    version: 'D1.0.0',
+    version: 'D2.0.0',
     name: '权威英语词典词库',
-    source: 'ECDICT 英汉词典 · 按词频排序',
+    source: 'ECDICT 英汉词典 · 牛津 3000 核心词（成人难度）',
     total: 0,                 // 运行时由 buildPool 填充
     lastSyncDate: '2026-08-27',
     autoSync: true,           // 启动时检测版本
   },
 
   DAILY_WORDS: 10,
-  DAILY_LISTEN: 5,
-  DAILY_SPEAK: 5,
 
   /* ---------- 词库（DICT_BANK 已按词频排序 = 由易到难） ---------- */
   flatPool: null,
@@ -109,16 +105,7 @@ const Study = {
     return batch.ids.map(id => pool.find(x => x[idKey] === id)).filter(Boolean);
   },
 
-  todayListen() {
-    const words = this.todayWords();
-    return words.slice(0, this.DAILY_LISTEN).map(w => ({ text: w.word, zh: w.meaning, phonetic: w.phonetic, pos: w.pos }));
-  },
-
-  todaySpeak() {
-    const words = this.todayWords();
-    const start = Math.min(this.DAILY_LISTEN, words.length);
-    return words.slice(start, start + this.DAILY_SPEAK).map(w => ({ text: w.word, trans: w.meaning, tip: w.phonetic ? ('音标 ' + w.phonetic) : '跟读练习', pos: w.pos }));
-  },
+  // 听力/口语功能已移除（v3.1.15）
 
   doneWordsSet() {
     return new Set(DB.get('study_word_done', []).map(r => r.word));
@@ -136,30 +123,12 @@ const Study = {
     return this.buildPool().filter(w => wrongs[w.word] >= 2 && !done.has(w.word));
   },
 
-  todayListenDone() {
-    const today = DB.todayKey();
-    return new Set(DB.filterByDate('study_listen_done', today).map(r => r.text));
-  },
-
-  todaySpeakDone() {
-    const today = DB.todayKey();
-    return new Set(DB.filterByDate('study_speak_done', today).map(r => r.text));
-  },
-
-  // 历史已做集合（跨天），用于"不重复已做"筛选
-  listenHistoryDone() {
-    return new Set(DB.get('study_listen_done', []).map(r => r.text));
-  },
-
-  speakHistoryDone() {
-    return new Set(DB.get('study_speak_done', []).map(r => r.text));
-  },
+  // 听力/口语历史集合已移除（v3.1.15）
 
   streakDays() {
     const dates = new Set([
       ...DB.get('study_word_done', []).map(r => r.date),
-      ...DB.get('study_listen_done', []).map(r => r.date),
-      ...DB.get('study_speak_done', []).map(r => r.date),
+      ...DB.get('study_checkin', []).map(r => r.date),
     ]);
     let streak = 0;
     const d = new Date();
@@ -184,8 +153,7 @@ const Study = {
     const words = this.todayWords();
     const doneSet = this.doneWordsSet();
     const wordDoneToday = words.filter(w => doneSet.has(w.word)).length;
-    const listenDone = this.todayListenDone().size;
-    const speakDone = this.todaySpeakDone().size;
+    // 听力/口语已移除
     const reviews = this.reviewWords();
     const books = DB.get('study_books', []);
     const readingStats = this.readingStats();
@@ -194,8 +162,6 @@ const Study = {
     const meta = this.dictMeta;
 
     const wordAllDone = wordDoneToday >= this.DAILY_WORDS;
-    const listenAllDone = listenDone >= this.DAILY_LISTEN;
-    const speakAllDone = speakDone >= this.DAILY_SPEAK;
 
     container.innerHTML = `
       <div class="page">
@@ -213,7 +179,7 @@ const Study = {
           <div class="kitty-portrait" style="background:linear-gradient(135deg,#d9e2f3,#ffd7c3)">${Utils.kittyImg({ size: 'small', module: 'study' })}</div>
           <div class="lfc-text">
             <div class="lfc-title">${this.streakDays() >= 7 ? '🌟 太厉害啦！' : this.streakDays() > 0 ? '📖 继续加油哦～' : '📖 开始今天的学习吧～'}</div>
-            <div class="lfc-sub">每天 10 个权威词典单词 + 5 听力 + 5 口语，单词来自 ECDICT 英汉词典、按词频由易到难；听力口语均围绕当天学的单词出题，答错 2 次自动进复习～</div>
+            <div class="lfc-sub">每天 10 个权威词典单词，来自 ECDICT 英汉词典 · 牛津 3000 核心词（成人难度），按使用频率由易到难；答错 2 次自动进复习～</div>
           </div>
         </div>
 
@@ -252,18 +218,7 @@ const Study = {
               <div class="stat-bar-num">${wordDoneToday}/${this.DAILY_WORDS}</div>
               <div class="stat-bar-label">今日单词</div>
             </div>
-            <div class="stat-bar-item">
-              <div class="stat-bar-num">${listenDone}/${this.DAILY_LISTEN}</div>
-              <div class="stat-bar-label">今日听力</div>
-            </div>
-            <div class="stat-bar-item">
-              <div class="stat-bar-num">${speakDone}/${this.DAILY_SPEAK}</div>
-              <div class="stat-bar-label">今日口语</div>
-            </div>
-            <div class="stat-bar-item">
-              <div class="stat-bar-num">${DB.get('study_listen_done', []).length + DB.get('study_speak_done', []).length}</div>
-              <div class="stat-bar-label">听说累计</div>
-            </div>
+            // 听力/口语统计已移除
           </div>
         </div>
 
@@ -282,16 +237,7 @@ const Study = {
               <div class="tile-label">每日单词 ×${this.DAILY_WORDS}</div>
               <div class="tile-sub">${wordAllDone ? '✓ 已完成' : wordDoneToday + '/' + this.DAILY_WORDS}</div>
             </div>
-            <div class="english-tile ${this.state.tab === 'listen' ? 'active' : ''}" data-stab="listen">
-              <div class="tile-ico">🎧</div>
-              <div class="tile-label">每日听力 ×${this.DAILY_LISTEN}</div>
-              <div class="tile-sub">${listenAllDone ? '✓ 已完成' : listenDone + '/' + this.DAILY_LISTEN}</div>
-            </div>
-            <div class="english-tile ${this.state.tab === 'speak' ? 'active' : ''}" data-stab="speak">
-              <div class="tile-ico">🎤</div>
-              <div class="tile-label">每日口语 ×${this.DAILY_SPEAK}</div>
-              <div class="tile-sub">${speakAllDone ? '✓ 已完成' : speakDone + '/' + this.DAILY_SPEAK}</div>
-            </div>
+            // 听力/口语入口已移除
             ${reviews.length ? `
             <div class="english-tile ${this.state.tab === 'review' ? 'active' : ''}" data-stab="review">
               <div class="tile-ico">🔁</div>
@@ -351,7 +297,7 @@ const Study = {
         </div>
 
         <div style="text-align:center;padding:16px;font-size:11px;color:var(--text-muted)">
-          每日 10 个权威词典单词 · 5 听力 · 5 口语（均围绕当天单词出题）· 做过的不再出现 · 答错 2 次自动进入待复习词库 🌸
+          每日 10 个权威词典单词 ·  做过的不再出现 · 答错 2 次自动进入待复习词库 🌸
         </div>
       </div>
     `;
@@ -392,54 +338,6 @@ const Study = {
         </div>
       `;
       this.bindQuiz();
-    } else if (tab === 'listen') {
-      const sentences = this.todayListen();
-      const doneSet = this.todayListenDone();
-      el.innerHTML = `
-        <div class="english-panel">
-          <div class="card-title mb-8"><span class="card-title-ico">🎧</span>今日听力 · 5 题（先盲听 → 选答案 → 确认）</div>
-          ${sentences.map((s, i) => `
-            <div class="listen-row ${doneSet.has(s.text) ? 'done' : ''}">
-              <div class="listen-num">${i + 1}</div>
-              <button class="audio-btn" data-listen-play="${i}" title="播放音频">▶</button>
-              <div class="listen-content">
-                <div class="listen-text">${doneSet.has(s.text) ? Utils.esc(s.text) : '🔊 点击 ▶ 听音频'}</div>
-                <div class="listen-zh" data-listen-zh="${i}" style="display:${doneSet.has(s.text) ? 'block' : 'none'}">${Utils.esc(s.zh)}</div>
-              </div>
-              <button class="checkin-btn ${doneSet.has(s.text) ? 'btn-pink btn-primary' : 'btn-ghost btn-primary'}" data-listen-done="${i}">
-                ${doneSet.has(s.text) ? '✓ 已完成' : '完成'}
-              </button>
-            </div>
-          `).join('')}
-          <div class="text-sm text-muted mt-8" style="font-size:11px">先点 ▶ 盲听，根据听到的单词选最贴切的中文意思，答对自动标记完成</div>
-        </div>
-      `;
-      this.bindListen();
-    } else if (tab === 'speak') {
-      const sentences = this.todaySpeak();
-      const doneSet = this.todaySpeakDone();
-      el.innerHTML = `
-        <div class="english-panel">
-          <div class="card-title mb-8"><span class="card-title-ico">🎤</span>今日口语 · 5 句（跟读并打卡）</div>
-          ${sentences.map((s, i) => `
-            <div class="speak-row ${doneSet.has(s.text) ? 'done' : ''}">
-              <div class="speak-content">
-                <div class="speak-text">"${Utils.esc(s.text)}"</div>
-                <div class="speak-trans">${Utils.esc(s.trans)}</div>
-                <div class="speak-tip">💡 ${Utils.esc(s.tip)}</div>
-              </div>
-              <div class="speak-actions">
-                <button class="btn-icon" title="示范朗读" data-speak-play="${i}">🔊</button>
-                <button class="checkin-btn ${doneSet.has(s.text) ? 'btn-pink btn-primary' : 'btn-ghost btn-primary'}" data-speak-done="${i}">
-                  ${doneSet.has(s.text) ? '✓ 已完成' : '跟读'}
-                </button>
-              </div>
-            </div>
-          `).join('')}
-          <div class="text-sm text-muted mt-8" style="font-size:11px">点 🔊 听示范，大声朗读 3 遍后打卡</div>
-        </div>
-      `;
-      this.bindSpeak();
     } else if (tab === 'review') {
       const reviews = this.reviewWords();
       el.innerHTML = `
@@ -583,168 +481,6 @@ const Study = {
         if (w) this.openQuiz(w, true);
       });
     });
-  },
-
-  /* ============================================================
-     听力：先听音频 → 4 选 1 → 点「确认」→ 答对显示原文
-     ============================================================ */
-  openListenQuiz(sentence, idx) {
-    const pool = this.buildPool();
-    const correct = sentence.zh;
-    // 4 个选项
-    const distract = pool.filter(s => s.zh !== correct).map(s => s.zh);
-    const opts = new Set([correct]);
-    while (opts.size < 4) opts.add(distract[Math.floor(Math.random() * distract.length)]);
-    const shuffled = [...opts].sort(() => Math.random() - 0.5);
-
-    const m = Components.modal({
-      title: '🎧 听力选择题',
-      body: `
-        <div class="text-center mb-16">
-          <button class="audio-btn-lg" id="listen-modal-play">▶ 播放音频</button>
-          <div class="text-sm text-muted mt-4">听英文句子，选出最贴切的中文意思</div>
-        </div>
-        <div id="listen-options" data-correct="${Utils.esc(correct)}" data-text="${Utils.esc(sentence.text)}">
-          ${shuffled.map((o, i) => `
-            <button class="quiz-option" data-opt="${Utils.esc(o)}" data-idx="${i}">
-              <span class="quiz-option-letter">${String.fromCharCode(65 + i)}</span>
-              <span class="quiz-option-text">${Utils.esc(o)}</span>
-            </button>
-          `).join('')}
-        </div>
-        <div class="quiz-actions">
-          <button class="btn-primary btn-block" id="listen-confirm" disabled>✓ 确认答案</button>
-        </div>
-        <div id="listen-feedback"></div>
-      `,
-    });
-
-    const box = document.getElementById('listen-options');
-    const correctAns = box.dataset.correct;
-    const englishText = box.dataset.text;
-    const confirmBtn = document.getElementById('listen-confirm');
-    let selected = null;
-
-    // 播放音频
-    document.getElementById('listen-modal-play').addEventListener('click', () => {
-      this.speak(englishText, 0.85);
-    });
-    // 自动播放一次
-    setTimeout(() => this.speak(englishText, 0.85), 300);
-
-    // 选选项
-    box.querySelectorAll('.quiz-option').forEach(btn => {
-      btn.addEventListener('click', () => {
-        if (btn.classList.contains('disabled')) return;
-        box.querySelectorAll('.quiz-option').forEach(b => b.classList.remove('selected'));
-        btn.classList.add('selected');
-        selected = btn.dataset.opt;
-        confirmBtn.disabled = false;
-      });
-    });
-
-    // 确认
-    confirmBtn.addEventListener('click', () => {
-      if (!selected) return;
-      confirmBtn.disabled = true;
-      box.querySelectorAll('.quiz-option').forEach(b => b.classList.add('disabled'));
-
-      const fb = document.getElementById('listen-feedback');
-      if (selected === correctAns) {
-        box.querySelectorAll('.quiz-option').forEach(b => {
-          if (b.dataset.opt === correctAns) b.classList.add('correct');
-        });
-        // 标记完成
-        if (!this.todayListenDone().has(englishText)) {
-          DB.push('study_listen_done', { text: englishText, date: DB.todayKey() });
-        }
-        if (fb) fb.innerHTML = `<div class="quiz-fb ok">🎉 答对了！<br><span style="font-size:13px;font-weight:500">"${Utils.esc(englishText)}"</span><br><span style="font-size:12px">${Utils.esc(correctAns)}</span></div>`;
-        Utils.toast('听力答对 🎧', 'success');
-        confirmBtn.textContent = '✓ 已掌握，关闭';
-        confirmBtn.disabled = false;
-        confirmBtn.onclick = () => {
-          document.querySelector('.modal-backdrop')?.remove();
-          this.mount(document.getElementById('app-main'));
-        };
-      } else {
-        box.querySelectorAll('.quiz-option').forEach(b => {
-          if (b.dataset.opt === correctAns) b.classList.add('correct');
-          if (b.dataset.opt === selected) b.classList.add('wrong');
-        });
-        if (fb) fb.innerHTML = `<div class="quiz-fb bad">❌ 答错了<br><span style="font-size:12px">正确答案：${Utils.esc(correctAns)}<br>原句："${Utils.esc(englishText)}"</span></div>`;
-        Utils.toast('再听一次 🎧', 'warning');
-        confirmBtn.textContent = '↻ 再听一次';
-        confirmBtn.disabled = false;
-        confirmBtn.onclick = () => {
-          document.querySelector('.modal-backdrop')?.remove();
-          this.openListenQuiz(sentence, idx);
-        };
-      }
-    });
-  },
-
-  /* ---------- 听力事件绑定 ---------- */
-  bindListen() {
-    const sentences = this.todayListen();
-    document.querySelectorAll('[data-listen-play]').forEach(b => {
-      b.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const idx = parseInt(b.dataset.listenPlay);
-        const s = sentences[idx];
-        this.speak(s.text, 0.85);
-      });
-    });
-    document.querySelectorAll('[data-listen-done]').forEach(b => {
-      b.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const idx = parseInt(b.dataset.listenDone);
-        const s = sentences[idx];
-        // 打开听力选择题 quiz
-        this.openListenQuiz(s, idx);
-      });
-    });
-  },
-
-  /* ---------- 口语 ---------- */
-  bindSpeak() {
-    const sentences = this.todaySpeak();
-    document.querySelectorAll('[data-speak-play]').forEach(b => {
-      b.addEventListener('click', () => {
-        const s = sentences[parseInt(b.dataset.speakPlay)];
-        this.speak(s.text, 0.85);
-        Utils.toast('示范朗读中 🔊');
-      });
-    });
-    document.querySelectorAll('[data-speak-done]').forEach(b => {
-      b.addEventListener('click', (e) => {
-        const s = sentences[parseInt(b.dataset.speakDone)];
-        const done = this.todaySpeakDone();
-        if (done.has(s.text)) {
-          const rec = DB.filterByDate('study_speak_done', DB.todayKey()).find(r => r.text === s.text);
-          if (rec) DB.removeById('study_speak_done', rec._id);
-          Utils.toast('已取消');
-        } else {
-          DB.push('study_speak_done', { text: s.text, date: DB.todayKey() });
-          Utils.toast('跟读完成 🎤', 'success');
-          Utils.burst(e.target, ['🎤', '💖', '🌟']);
-        }
-        this.mount(document.getElementById('app-main'));
-      });
-    });
-  },
-
-  speak(text, rate = 0.85) {
-    if ('speechSynthesis' in window) {
-      try {
-        speechSynthesis.cancel();
-        const u = new SpeechSynthesisUtterance(text);
-        u.lang = 'en-US';
-        u.rate = rate;
-        speechSynthesis.speak(u);
-      } catch (e) {}
-    } else {
-      Utils.toast('当前浏览器不支持语音朗读', 'warning');
-    }
   },
 
   renderBook(b, i) {
