@@ -85,6 +85,7 @@ const Study = {
 
   todayStage() {
     const total = this.buildPool().length;
+    if (total === 0) return '⚠️ 词库未加载';
     const done = this.doneWordsSet().size;
     if (done >= total) return '全部完成 🎉';
     return '已学 ' + done + ' / ' + total + ' 词';
@@ -105,8 +106,6 @@ const Study = {
     return batch.ids.map(id => pool.find(x => x[idKey] === id)).filter(Boolean);
   },
 
-  // 听力/口语功能已移除（v3.1.15）
-
   doneWordsSet() {
     return new Set(DB.get('study_word_done', []).map(r => r.word));
   },
@@ -123,7 +122,6 @@ const Study = {
     return this.buildPool().filter(w => wrongs[w.word] >= 2 && !done.has(w.word));
   },
 
-  // 听力/口语历史集合已移除（v3.1.15）
 
   streakDays() {
     const dates = new Set([
@@ -153,7 +151,6 @@ const Study = {
     const words = this.todayWords();
     const doneSet = this.doneWordsSet();
     const wordDoneToday = words.filter(w => doneSet.has(w.word)).length;
-    // 听力/口语已移除
     const reviews = this.reviewWords();
     const books = DB.get('study_books', []);
     const readingStats = this.readingStats();
@@ -218,7 +215,6 @@ const Study = {
               <div class="stat-bar-num">${wordDoneToday}/${this.DAILY_WORDS}</div>
               <div class="stat-bar-label">今日单词</div>
             </div>
-            // 听力/口语统计已移除
           </div>
         </div>
 
@@ -237,7 +233,6 @@ const Study = {
               <div class="tile-label">每日单词 ×${this.DAILY_WORDS}</div>
               <div class="tile-sub">${wordAllDone ? '✓ 已完成' : wordDoneToday + '/' + this.DAILY_WORDS}</div>
             </div>
-            // 听力/口语入口已移除
             ${reviews.length ? `
             <div class="english-tile ${this.state.tab === 'review' ? 'active' : ''}" data-stab="review">
               <div class="tile-ico">🔁</div>
@@ -316,6 +311,19 @@ const Study = {
       const words = this.todayWords();
       const doneSet = this.doneWordsSet();
       const wrongs = this.wrongMap();
+      if (words.length === 0) {
+        el.innerHTML = `
+          <div class="english-panel">
+            ${Components.empty({
+              icon: '⚠️',
+              title: '词库未加载',
+              sub: '词典数据加载失败，请硬刷新页面（设置 → 清除缓存 → 硬刷新）。',
+              hero: true,
+            })}
+          </div>
+        `;
+        return;
+      }
       el.innerHTML = `
         <div class="english-panel">
           <div class="flex-between mb-8">
